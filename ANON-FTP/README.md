@@ -49,22 +49,16 @@ The purpose of this project is to provide a classroom example of configuring an 
 
 1. Install **Vagrant** and **Ansible** on your local machine.
 
-2. Start the virtual machine with Vagrant
+2. Start the virtual machine with Vagrant and provision it:
 
     ```bash
-        vagrant up
+        vagrant up --provision
     ````
 
-3. Provision the VM using Ansible
+3. Access the FTP server using any standard FTP client with anonymous login:
 
     ```bash
-        ansible-playbook -i inventory setup.yml
-    ```
-
-4. Access the FTP server using any standard FTP client with anonymous login:
-
-    ```bash
-        Host: mirror.sistema.sol
+        Host: 192.168.56.10 (mirror.sistema.sol in case of having a DNS server)
         User: anonymous
         Password: <your email>
     ```
