@@ -1,0 +1,48 @@
+- name: Configure anonymous FTP server with vsftpd
+  hosts: anon-ftp
+  become: true
+
+  tasks:
+    - name: Install vsftpd
+      apt:
+        name: vsftpd
+        state: present
+        update_cache: yes
+
+    - name: Create anonymous FTP directory
+      file:
+        path: /srv/ftp
+        state: directory
+        owner: ftp
+        group: nogroup
+        mode: '0555'
+
+    - name: Copy vsftpd configuration
+      copy:
+        src: files/vsftpd.conf
+        dest: /etc/vsftpd.conf
+        owner: root
+        group: root
+        mode: '0644'
+      notify: Restart vsftpd
+
+    - name: Copy welcome README
+      copy:
+        src: files/README.md
+        dest: /srv/ftp/README.md
+        owner: root
+        group: root
+        mode: '0644'
+      notify: Restart vsftpd
+
+    - name: Enable and start vsftpd
+      service:
+        name: vsftpd
+        enabled: yes
+        state: started
+
+  handlers:
+    - name: Restart vsftpd
+      service:
+        name: vsftpd
+        state: restarted
