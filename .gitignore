@@ -1,2 +1,4 @@
 # Ignore the .vagrant folder
 .vagrant/
+# Ignore the .ansible folder
+.ansible/
