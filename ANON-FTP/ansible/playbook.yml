@@ -4,13 +4,13 @@
 
   tasks:
     - name: Install vsftpd
-      apt:
+      ansible.builtin.apt:
         name: vsftpd
         state: present
-        update_cache: yes
+        update_cache: true
 
     - name: Create anonymous FTP directory
-      file:
+      ansible.builtin.file:
         path: /srv/ftp
         state: directory
         owner: ftp
@@ -18,7 +18,7 @@
         mode: '0555'
 
     - name: Copy vsftpd configuration
-      copy:
+      ansible.builtin.copy:
         src: files/vsftpd.conf
         dest: /etc/vsftpd.conf
         owner: root
@@ -27,7 +27,7 @@
       notify: Restart vsftpd
 
     - name: Copy welcome README
-      copy:
+      ansible.builtin.copy:
         src: files/README.md
         dest: /srv/ftp/README.md
         owner: root
@@ -36,13 +36,13 @@
       notify: Restart vsftpd
 
     - name: Enable and start vsftpd
-      service:
+      ansible.builtin.service:
         name: vsftpd
-        enabled: yes
+        enabled: true
         state: started
 
   handlers:
     - name: Restart vsftpd
-      service:
+      ansible.builtin.service:
         name: vsftpd
         state: restarted
