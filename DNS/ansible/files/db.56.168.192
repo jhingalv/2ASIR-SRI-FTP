@@ -1,0 +1,13 @@
+$TTL    604800
+@       IN      SOA     dns.sistema.sol. admin.sistema.sol. (
+                              2026011801 ; Serial
+                              604800     ; Refresh
+                              86400      ; Retry
+                              2419200    ; Expire
+                              604800 )   ; Negative Cache TTL
+;
+@       IN      NS      dns.sistema.sol.
+
+5       IN      PTR     dns.sistema.sol.
+10      IN      PTR     mirror.sistema.sol.
+20      IN      PTR     ftp.sistema.sol.

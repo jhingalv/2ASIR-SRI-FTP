@@ -1,5 +1,5 @@
 - name: Configure anonymous FTP server with vsftpd
-  hosts: anon-ftp
+  hosts: anon_ftp
   become: true
 
   tasks:
