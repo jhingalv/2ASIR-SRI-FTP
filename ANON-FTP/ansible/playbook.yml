@@ -35,6 +35,14 @@
         mode: '0644'
       notify: Restart vsftpd
 
+    - name: Copy resolv.conf
+      ansible.builtin.copy:
+        src: files/resolv.conf
+        dest: /etc/resolv.conf
+        owner: root
+        group: root
+        mode: '0644'
+
     - name: Enable and start vsftpd
       ansible.builtin.service:
         name: vsftpd
