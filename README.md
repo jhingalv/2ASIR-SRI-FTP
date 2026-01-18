@@ -119,7 +119,7 @@ inventory.ini
 
 ---
 
-## Subproject 1: Secure FTP (FTPS)
+## Subproject 2: Secure FTP (FTPS)
 
 ### Objectives
 
