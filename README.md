@@ -8,13 +8,14 @@
 ---
 
 ## General Description
-This project focuses on the **installation, configuration, and validation of FTP services on Linux** using the **vsftpd** server. It covers two common real-world scenarios:
+This project focuses on the **installation, configuration, and validation of FTP services on Linux** using the **vsftpd** server. It covers two common real-world scenarios with a DNS server configuration for both cases:
 
 1. **Anonymous FTP Server**  
    A public download-only FTP server designed as a mirror repository, with strict security and performance limitations.
 2. **Secure FTP Server (FTPS)**  
    Authenticated and anonymous access with bandwidth control, directory jailing, connection limits, and encrypted communications.
-   
+3. **DNS server**
+   Responsible for resolving the hostnames required for the FTP infraestructure in sistema.sol domain.
 Each subproject includes setup steps, configuration requirements, testing procedures, and validation criteria.
 
 ---
@@ -52,6 +53,7 @@ inventory.ini
 ### Server Information  
 - Operating System: **Debian**
 - Hostname: **mirror.sistema.sol**
+- IP address: 192.168.56.10
 
 ---
 
@@ -113,9 +115,9 @@ inventory.ini
 
 ## Project Status
 
-✔ Fully implemented  
-✔ Tested and validated  
-✔ Ready for deployment and evaluation
+- ✔ Fully implemented  
+- ✔ Tested and validated  
+- ✔ Ready for deployment and evaluation
 
 ---
 
@@ -133,6 +135,13 @@ inventory.ini
   - Directory jailing (`chroot`)
   - Connection limits
   - Custom welcome messages
+
+---
+
+### Server Information  
+- Operating System: **Debian**
+- Hostname: **ftp.sistema.sol**
+- IP address: 192.168.56.20
 
 ---
 
@@ -184,13 +193,110 @@ inventory.ini
 - Certificate acceptance and verification
 - Secure file download confirmation (lock icon displayed in client)
 
+---
 
+## Subproject 3: DNS Server
 
+### Overview
+This virtual machine implements the **DNS infrastructure** for the `sistema.sol` domain.  
+It provides name resolution services required by the FTP environment, including both the **anonymous FTP server** and the **secure FTP server**.
 
+The DNS service is implemented using **BIND9** and is authoritative for the `sistema.sol` domain.
 
+---
 
+### Server Information
 
+| Item | Value |
+|-----|------|
+| Hostname | `dns.sistema.sol` |
+| IP Address | `192.168.56.5` |
+| Service | DNS (BIND9) |
+| Domain | `sistema.sol` |
 
+---
 
+### DNS Responsibilities
+
+This DNS server is responsible for resolving hostnames related to the FTP infrastructure:
+
+| Hostname | Purpose | IP Address |
+|--------|--------|------------|
+| `dns.sistema.sol` | DNS server | `192.168.56.5` |
+| `mirror.sistema.sol` | Anonymous FTP server | `192.168.56.10` |
+| `ftp.sistema.sol` | Secure FTP server | `192.168.56.20` |
+
+---
+
+### Installed Software
+
+- **bind9** – DNS server software
+- **dnsutils** – DNS query and troubleshooting tools
+
+---
+
+### Configuration Files
+
+The DNS configuration is handled through the following files:
+
+| File | Purpose |
+|----|--------|
+| `/etc/bind/named.conf` | Main BIND configuration file |
+| `/etc/bind/named.conf.options` | Global DNS options |
+| `/etc/bind/named.conf.local` | Local zone definitions |
+| `/etc/bind/db.sistema.sol` | Forward zone file for `sistema.sol` |
+| Reverse zone file | IP-to-hostname resolution (optional but recommended) |
+
+---
+
+### Forward DNS Zone
+
+A forward DNS zone for the domain `sistema.sol` is configured and includes the following **A records**:
+
+```text
+dns.sistema.sol     → 192.168.56.5
+mirror.sistema.sol  → 192.168.56.10
+ftp.sistema.sol     → 192.168.56.20
+```
+
+### Service Status
+- DNS service is running and enabled at system startup
+- Listening on port 53 (UDP and TCP)
+- Accessible from client machines within the network
+
+### Validation and Testing
+The configuration was validated using the following tools:
+**Configuration Validation**
+```bash
+named-checkconf
+named-checkconf sistema.sol /etc/bind/db.sistema.sol
+```
+**Name Resolution Tests**
+```bash
+dig dns.sistema.sol
+dig mirror.sistema.sol
+dig ftp.sistema.sol
+
+nslookup dns.sistema.sol
+nslookup mirror.sistema.sol
+nslookup ftp.sistema.sol
+```
+The tests should return the expected IP addresses
+
+### Expected Results
+- The DNS server responds as dns.sistema.sol with IP 192.168.56.5
+- Forward DNS zone for sistema.sol is correctly defined
+- All required A records exists and resolve correctly
+- DNS service starts automatically on boot
+- The DNS infraestructure fully supports the FTP services
+
+### Completion Criteria
+- ✔ bind9 package installed
+- ✔ DNS service running and enabled
+- ✔ sistema.sol zone defined without errors
+- ✔ A records for dns, mirror, and ftp correctly configured
+- ✔ Configuration passes named-checkconf and named-checkzone
+- ✔ Name resolution works from client machines
+- ✔ DNS server is authoritative for sistema.sol
 
 
