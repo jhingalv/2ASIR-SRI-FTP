@@ -1,7 +1,6 @@
----
 - name: Configure secure FTP server with vsftpd
-  hosts: vagrant
-  become: yes
+  hosts: safe_ftp
+  become: true
   vars:
     ftp_users:
       - { name: "luis", files: ["luis1.txt", "luis2.txt"], chroot: yes }
@@ -30,6 +29,13 @@
         - vsftpd
         - ftp
       state: present
+  - name: Copy resolv.conf
+    ansible.builtin.copy:
+      src: files/resolv.conf
+      dest: /etc/resolv.conf
+      owner: root
+      group: root
+      mode: '0644'
 
   - name: Ensure /srv/ftp exists
     file:
