@@ -5,16 +5,16 @@
   tasks:
 
     - name: Install bind9 and utilities
-      apt:
+      ansible.builtin.apt:
         name:
           - bind9
           - bind9utils
           - bind9-doc
         state: present
-        update_cache: yes
+        update_cache: true
 
     - name: Copy named.conf.options
-      copy:
+      ansible.builtin.copy:
         src: files/named.conf.options
         dest: /etc/bind/named.conf.options
         owner: root
@@ -22,7 +22,7 @@
         mode: '0644'
 
     - name: Copy named.conf.local
-      copy:
+      ansible.builtin.copy:
         src: files/named.conf.local
         dest: /etc/bind/named.conf.local
         owner: root
@@ -30,7 +30,7 @@
         mode: '0644'
 
     - name: Copy forward zone file
-      copy:
+      ansible.builtin.copy:
         src: files/db.sistema.sol
         dest: /etc/bind/db.sistema.sol
         owner: root
@@ -38,7 +38,7 @@
         mode: '0644'
 
     - name: Copy reverse zone file
-      copy:
+      ansible.builtin.copy:
         src: files/db.56.168.192
         dest: /etc/bind/db.56.168.192
         owner: root
@@ -46,22 +46,25 @@
         mode: '0644'
 
     - name: Check BIND configuration syntax
-      command: named-checkconf
+      ansible.builtin.command: named-checkconf
       register: bind_conf_check
       failed_when: bind_conf_check.rc != 0
+      changed_when: false
 
     - name: Check forward zone syntax
-      command: named-checkzone sistema.sol /etc/bind/db.sistema.sol
+      ansible.builtin.command: named-checkzone sistema.sol /etc/bind/db.sistema.sol
       register: forward_zone_check
       failed_when: forward_zone_check.rc != 0
+      changed_when: false
 
     - name: Check reverse zone syntax
-      command: named-checkzone 56.168.192.in-addr.arpa /etc/bind/db.56.168.192
+      ansible.builtin.command: named-checkzone 56.168.192.in-addr.arpa /etc/bind/db.56.168.192
       register: reverse_zone_check
       failed_when: reverse_zone_check.rc != 0
+      changed_when: false
 
     - name: Restart BIND9 service
-      service:
+      ansible.builtin.service:
         name: bind9
         state: restarted
-        enabled: yes
+        enabled: true
