@@ -16,21 +16,9 @@
     ftp_bandwidth_anonymous: 2
     ftp_welcome: "--- Welcome to the FTP server of 'sistema.sol' ---"
     ftp_anon_welcome: "--- You have accessed the public directory server of 'sistema.sol' ---"
+    ftp_pasv_ip: "192.168.56.20"
 
   tasks:
-
-  - name: Update apt cache
-    apt:
-      update_cache: yes
-
-  - name: Install vsftpd, FTP client, and openssl
-    apt:
-      name:
-        - vsftpd
-        - ftp
-        - openssl
-        - ufw
-      state: present
 
   - name: Copy resolv.conf
     ansible.builtin.copy:
@@ -38,7 +26,19 @@
       dest: /etc/resolv.conf
       owner: root
       group: root
-      mode: '0644'
+
+  - name: Update apt cache
+    apt:
+      update_cache: yes
+
+  - name: Install vsftpd, FTP client, openssl, and ufw
+    apt:
+      name:
+        - vsftpd
+        - ftp
+        - openssl
+        - ufw
+      state: present
 
   - name: Ensure /srv/ftp exists
     file:
@@ -57,39 +57,86 @@
       group: root
       mode: '0644'
 
+  - name: Create SSL certificate for FTPS if not exists
+    command: >
+      openssl req -x509 -nodes -days 365
+      -newkey rsa:2048
+      -keyout {{ ftp_cert }}
+      -out {{ ftp_cert }}
+      -subj "/C=ES/ST=Madrid/L=Madrid/O=Example/OU=IT/CN=ftp.example.test"
+    args:
+      creates: "{{ ftp_cert }}"
+    notify: Restart vsftpd
+
+
   - name: Configure vsftpd.conf
     copy:
       dest: /etc/vsftpd.conf
       content: |
+        #
+        # 1. El servidor se inicia en modo standalone
         listen=YES
         listen_ipv6=NO
 
+        #
+        # 2. Mensaje de bienvenida global
         ftpd_banner={{ ftp_welcome }}
 
+        #
+        # 3. Habilitar acceso anónimo solo para descarga
+        guest_enable=YES
+        guest_username=ftp
         anonymous_enable={{ "YES" if ftp_anonymous else "NO" }}
         anon_root=/srv/ftp
         anon_upload_enable=NO
         anon_mkdir_write_enable=NO
         anon_other_write_enable=NO
 
+        #
+        # 4. Usuarios locales
         local_enable=YES
         write_enable=YES
+
+        #
+        # 5. Chroot para usuarios locales (excepto maria)
         chroot_local_user=YES
         allow_writeable_chroot=YES
         user_sub_token=$USER
-
         user_config_dir=/etc/vsftpd_user_conf
 
+        #
+        # 6. Conexiones desde puerto 20
         connect_from_port_20=YES
+
+        #
+        # 7. Habilitar PASV y rango de puertos
         pasv_enable=YES
         pasv_min_port=30000
         pasv_max_port=30100
+        pasv_address={{ ftp_pasv_ip }}
 
+        #
+        # 8. Control de tiempo de inactividad
         idle_session_timeout={{ ftp_idle_timeout }}
+
+        #
+        # 9. Control de conexiones máximas
         max_clients={{ ftp_max_connections }}
+
+        #
+        # 10. Control de ancho de banda
         local_max_rate={{ ftp_bandwidth_local * 1024 * 1024 }}
         anon_max_rate={{ ftp_bandwidth_anonymous * 1024 * 1024 }}
 
+        #
+        # 11. Logging
+        xferlog_enable=YES
+        xferlog_file=/var/log/vsftpd.log
+        xferlog_std_format=YES
+        log_ftp_protocol=YES
+
+        #
+        # 12. Configuración de FTP seguro (FTPS)
         ssl_enable=YES
         allow_anon_ssl=YES
         force_local_data_ssl=YES
@@ -97,10 +144,11 @@
         rsa_cert_file={{ ftp_cert }}
         require_ssl_reuse=NO
 
-        xferlog_enable=YES
-        xferlog_file=/var/log/vsftpd.log
-        xferlog_std_format=YES
-        log_ftp_protocol=YES
+        #
+        # 13. Usuarios bloqueados
+        userlist_enable=YES
+        userlist_deny=YES
+        userlist_file=/etc/vsftpd.user_list
 
   - name: Ensure vsftpd user configuration directory exists
     file:
@@ -110,7 +158,7 @@
       group: root
       mode: '0755'
 
-  - name: Create user-specific configuration for maria
+  - name: Create user-specific configuration for maria (no chroot)
     copy:
       dest: /etc/vsftpd_user_conf/maria
       content: |
@@ -134,6 +182,48 @@
     loop: "{{ ftp_users | subelements('files') }}"
     when: item.1 is defined
 
+  - name: Open FTP ports in UFW
+    ufw:
+      rule: allow
+      port: "{{ item }}"
+      proto: tcp
+    loop:
+      - 21
+      - 20
+      - "30000:30100"
+
+  - name: Create vsftpd user_list file with denied users
+    copy:
+      dest: /etc/vsftpd.user_list
+      content: |
+        root
+        daemon
+        bin
+        sys
+        sync
+        games
+        man
+        lp
+        mail
+        news
+        uucp
+        proxy
+        www-data
+        backup
+        list
+        irc
+        gnats
+        nobody
+      owner: root
+      group: root
+      mode: '0644'
+
+  - name: Add local DNS entry for ftp.example.test
+    lineinfile:
+      path: /etc/hosts
+      line: "{{ ftp_pasv_ip }} ftp.example.test"
+      state: present
+
   - name: Start and enable vsftpd service
     systemd:
       name: vsftpd
@@ -143,7 +233,13 @@
 
   - name: Wait for vsftpd to listen on port 21
     wait_for:
-      host: 127.0.0.1
+      host: 0.0.0.0
       port: 21
       delay: 5
       timeout: 30
+
+  handlers:
+    - name: Restart vsftpd
+      systemd:
+        name: vsftpd
+        state: restarted
