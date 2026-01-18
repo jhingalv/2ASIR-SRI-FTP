@@ -1,6 +1,5 @@
----
 - name: Configure BIND9 DNS Server
-  hosts: dns-server
+  hosts: dns_server
   become: true
 
   tasks:
