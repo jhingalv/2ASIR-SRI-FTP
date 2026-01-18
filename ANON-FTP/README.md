@@ -58,7 +58,7 @@ The purpose of this project is to provide a classroom example of configuring an 
 3. Access the FTP server using any standard FTP client with anonymous login:
 
     ```bash
-        Host: 192.168.56.10 (mirror.sistema.sol in case of having a DNS server)
+        Host: 192.168.56.10 (mirror.sistema.sol)
         User: anonymous
         Password: <your email>
     ```
