@@ -26,6 +26,7 @@ Each subproject includes their own READMES where are detailed setup steps, confi
   ANON-FTP/
   ├── ansible/
   │ ├── files/
+  │ │ ├── resolv.conf
   │ │ ├── README.md
   │ │ └── vsftpd.conf
   │ └── playbook.yml
@@ -34,6 +35,7 @@ Each subproject includes their own READMES where are detailed setup steps, confi
   DNS/
   ├── ansible/
   │ ├── files/
+  │ │ ├── resolv.conf
   │ │ ├── db.56.168.192
   │ │ ├── db.sistema.sol
   │ │ ├── named.conf.local
@@ -44,8 +46,7 @@ Each subproject includes their own READMES where are detailed setup steps, confi
   SAFE-FTP/
   ├── ansible/
   │ ├── files/
-  │ │ ├── README.md
-  │ │ └── vsftpd.conf
+  │ │ └── resolv.conf
   │ └── playbook.yml
   └── README.md
 
