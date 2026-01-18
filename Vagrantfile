@@ -31,5 +31,21 @@ Vagrant.configure("2") do |config|
       ansible.inventory_path = "./inventory.ini"
     end
   end
+  
+  # Secure FTP VM
+  config.vm.define "safe_ftp" do |ftp|
+    ftp.vm.box = "debian/bookworm64"
+    ftp.vm.hostname = "ftp.sistema.sol"
+    ftp.vm.network "private_network", ip: "192.168.56.20"
+
+    ftp.vm.provider "virtualbox" do |vb|
+      vb.name = "safe_ftp"
+    end
+
+    ftp.vm.provision "ansible" do |ansible|
+      ansible.playbook = "./SAFE-FTP/ansible/playbook.yml"
+      ansible.inventory_path = "./inventory.ini"
+    end
+  end
 
 end
