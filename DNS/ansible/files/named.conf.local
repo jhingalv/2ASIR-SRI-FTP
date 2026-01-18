@@ -1,0 +1,11 @@
+// Forward zone
+zone "sistema.sol" {
+    type master;
+    file "/etc/bind/db.sistema.sol";
+};
+
+// Reverse zone
+zone "56.168.192.in-addr.arpa" {
+    type master;
+    file "/etc/bind/db.56.168.192";
+};
