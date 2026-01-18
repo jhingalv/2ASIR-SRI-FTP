@@ -2,7 +2,7 @@ options {
     directory "/var/cache/bind";
 
     // Allow queries from local network
-    listen-on { 192.168.56.5; };
+    listen-on { any; };
     allow-query { any; };
 
     recursion yes;
