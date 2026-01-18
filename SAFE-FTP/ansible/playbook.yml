@@ -23,12 +23,14 @@
     apt:
       update_cache: yes
 
-  - name: Install vsftpd and FTP client
+  - name: Install vsftpd, FTP client, and openssl
     apt:
       name:
         - vsftpd
         - ftp
+        - openssl
       state: present
+
   - name: Copy resolv.conf
     ansible.builtin.copy:
       src: files/resolv.conf
@@ -54,58 +56,63 @@
       group: root
       mode: '0644'
 
+  - name: Create SSL certificate if missing
+    command: >
+      openssl req -x509 -nodes -days 365
+      -newkey rsa:2048
+      -keyout {{ ftp_cert }}
+      -out {{ ftp_cert }}
+      -subj "/CN=ftp.sistema.sol"
+    args:
+      creates: "{{ ftp_cert }}"
+
+  - name: Set correct permissions on SSL certificate
+    file:
+      path: "{{ ftp_cert }}"
+      owner: root
+      group: root
+      mode: '0600'
+
   - name: Configure vsftpd.conf
     copy:
       dest: /etc/vsftpd.conf
       content: |
-        # 1. Standalone mode with IPv4
         listen=YES
         listen_ipv6=NO
 
-        # 2. FTP server welcome message
         ftpd_banner={{ ftp_welcome }}
 
-        # 3. Anonymous access
         anonymous_enable={{ "YES" if ftp_anonymous else "NO" }}
         anon_root=/srv/ftp
         anon_upload_enable=NO
         anon_mkdir_write_enable=NO
         anon_other_write_enable=NO
 
-        # 4. Local users
         local_enable=YES
         write_enable=YES
         chroot_local_user=YES
         allow_writeable_chroot=YES
         user_sub_token=$USER
 
-        # Exception for maria
         user_config_dir=/etc/vsftpd_user_conf
 
-        # 5. FTP Ports
         connect_from_port_20=YES
         pasv_enable=YES
         pasv_min_port=30000
         pasv_max_port=30100
 
-        # 6. Timeouts & limits
         idle_session_timeout={{ ftp_idle_timeout }}
         max_clients={{ ftp_max_connections }}
         local_max_rate={{ ftp_bandwidth_local * 1024 * 1024 }}
         anon_max_rate={{ ftp_bandwidth_anonymous * 1024 * 1024 }}
 
-        # 7. SSL/TLS
         ssl_enable=YES
         allow_anon_ssl=YES
         force_local_data_ssl=YES
         force_local_logins_ssl=YES
-        ssl_tlsv1=YES
-        ssl_sslv2=NO
-        ssl_sslv3=YES
         rsa_cert_file={{ ftp_cert }}
         require_ssl_reuse=NO
 
-        # Logging
         xferlog_enable=YES
         xferlog_file=/var/log/vsftpd.log
         xferlog_std_format=YES
@@ -143,19 +150,21 @@
     loop: "{{ ftp_users | subelements('files') }}"
     when: item.1 is defined
 
-  - name: Restart vsftpd service
-    service:
+  - name: Start and enable vsftpd service
+    systemd:
       name: vsftpd
-      state: restarted
+      state: started
       enabled: yes
+      daemon_reload: yes
 
-  - name: Ensure vsftpd is listening on port 21
+  - name: Wait for vsftpd to listen on port 21
     wait_for:
       host: 127.0.0.1
-      port: "{{ ftp_port }}"
+      port: 21
+      delay: 5
       timeout: 30
 
-  - name: Ensure FTP data port 20 is allowed in firewall
+  - name: Allow FTP data port 20 in firewall
     ufw:
       rule: allow
       port: "{{ ftp_data_port }}"
