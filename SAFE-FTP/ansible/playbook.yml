@@ -1,5 +1,5 @@
 - name: Configure secure FTP server with vsftpd
-  hosts: vagrant
+  hosts: safe_ftp
   become: true
   vars:
     ftp_users:
