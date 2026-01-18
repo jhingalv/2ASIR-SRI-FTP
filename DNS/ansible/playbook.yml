@@ -13,6 +13,14 @@
         state: present
         update_cache: true
 
+    - name: Copy resolv.conf
+      ansible.builtin.copy:
+        src: files/resolv.conf
+        dest: /etc/resolv.conf
+        owner: root
+        group: root
+        mode: '0644'
+
     - name: Copy named.conf.options
       ansible.builtin.copy:
         src: files/named.conf.options
