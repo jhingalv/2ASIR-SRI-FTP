@@ -19,7 +19,6 @@
     ftp_pasv_ip: "192.168.56.20"
 
   tasks:
-
     - name: Copy resolv.conf
       ansible.builtin.copy:
         src: files/resolv.conf
@@ -64,7 +63,7 @@
         -newkey rsa:2048
         -keyout {{ ftp_cert }}
         -out {{ ftp_cert }}
-        -subj "/C=ES/ST=Madrid/L=Madrid/O=Example/OU=IT/CN=ftp.example.test"
+        -subj "/C=ES/ST=Granada/L=Granada/O=FTP_LAB/OU=Amador_y_Alvaro/CN=ftp.sistema.sol"
       args:
         creates: "{{ ftp_cert }}"
       notify: Restart vsftpd
