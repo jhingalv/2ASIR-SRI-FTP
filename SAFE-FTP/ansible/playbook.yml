@@ -29,6 +29,7 @@
         - vsftpd
         - ftp
         - openssl
+        - ufw
       state: present
 
   - name: Copy resolv.conf
@@ -163,9 +164,3 @@
       port: 21
       delay: 5
       timeout: 30
-
-  - name: Allow FTP data port 20 in firewall
-    ufw:
-      rule: allow
-      port: "{{ ftp_data_port }}"
-      proto: tcp
