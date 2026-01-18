@@ -88,6 +88,7 @@
           chroot_local_user=YES
           allow_writeable_chroot=YES
           user_sub_token=$USER
+          local_root=/home/$USER/files
           user_config_dir=/etc/vsftpd_user_conf
           connect_from_port_20=YES
           pasv_enable=YES
@@ -137,18 +138,46 @@
         name: "{{ item.name }}"
         password: "{{ 'password' | password_hash('sha512') }}"
         shell: /bin/bash
+        create_home: true
         state: present
+      loop: "{{ ftp_users }}"
+
+    - name: Fix home directory permissions for FTP chroot
+      ansible.builtin.file:
+        path: "/home/{{ item.name }}"
+        owner: root
+        group: root
+        mode: '0755'
+      loop: "{{ ftp_users }}"
+      when: item.chroot
+
+    - name: Create FTP data directory for users
+      ansible.builtin.file:
+        path: "/home/{{ item.name }}/files"
+        state: directory
+        owner: "{{ item.name }}"
+        group: "{{ item.name }}"
+        mode: '0755'
       loop: "{{ ftp_users }}"
 
     - name: Create home files for users
       ansible.builtin.copy:
-        dest: "/home/{{ item.0.name }}/{{ item.1 }}"
+        dest: "/home/{{ item.0.name }}/files/{{ item.1 }}"
         content: "This is {{ item.1 }} for {{ item.0.name }}."
         owner: "{{ item.0.name }}"
         group: "{{ item.0.name }}"
         mode: '0644'
       loop: "{{ ftp_users | subelements('files') }}"
-      when: item.1 is defined
+
+    - name: Fix home directory permissions for non-chroot users
+      ansible.builtin.file:
+        path: "/home/{{ item.name }}"
+        owner: "{{ item.name }}"
+        group: "{{ item.name }}"
+        mode: '0755'
+      loop: "{{ ftp_users }}"
+      when: not item.chroot
+      notify: Restart vsftpd
 
     - name: Open FTP ports in UFW
       community.general.ufw:
