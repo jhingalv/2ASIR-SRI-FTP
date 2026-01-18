@@ -56,23 +56,6 @@
       group: root
       mode: '0644'
 
-  - name: Create SSL certificate if missing
-    command: >
-      openssl req -x509 -nodes -days 365
-      -newkey rsa:2048
-      -keyout {{ ftp_cert }}
-      -out {{ ftp_cert }}
-      -subj "/CN=ftp.sistema.sol"
-    args:
-      creates: "{{ ftp_cert }}"
-
-  - name: Set correct permissions on SSL certificate
-    file:
-      path: "{{ ftp_cert }}"
-      owner: root
-      group: root
-      mode: '0600'
-
   - name: Configure vsftpd.conf
     copy:
       dest: /etc/vsftpd.conf
