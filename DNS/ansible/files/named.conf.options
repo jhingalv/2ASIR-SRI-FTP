@@ -1,11 +1,14 @@
 options {
     directory "/var/cache/bind";
 
-    // Allow queries from local network
     listen-on { any; };
-    allow-query { any; };
+    allow-query { 192.168.56.0/24; };
 
     recursion yes;
+    forwarders {
+        8.8.8.8;
+        8.8.4.4;
+    };
     dnssec-validation auto;
 
     auth-nxdomain no;
