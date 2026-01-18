@@ -1,8 +1,6 @@
-# 2ASIR-SRI-FTP Project on Linux
+# 2ASIR SRI FTP Project
 
-**Secure FTP (FTPS) and Anonymous FTP**
-
-# Authors
+## Authors
 
 - Juan Amador Hinojosa Gálvez [jhingal3010@ieszaidinvergeles.org]
 - Álvaro Rodríguez Pulido [arodpul3005@ieszaidinvergeles.org]
@@ -59,19 +57,19 @@ Each subproject includes their own READMES where are detailed setup steps, confi
 
 ## Subproject 1: Anonymous FTP Server
 
-### Objectives
+### Anonymous FTP Objectives
 
 - Configure a **pure anonymous FTP server** for publis downloads
 - Provide a mirror repository for **OpenSUSE updates**
 - Prevent any authenticated local user access
 
-### Server Information  
+### Anonymous FTP Server Information  
 
 - Operating System: **Debian**
 - Hostname: **mirror.sistema.sol**
 - IP address: 192.168.56.10
 
-### Configuration Requirements
+### Anonymous FTP Configuration Requirements
 
 - All configuration directives documented with comments
 - Welcome message: **-- Mirror of OpenSUSE for 'sistema.sol'**
@@ -87,21 +85,21 @@ Each subproject includes their own READMES where are detailed setup steps, confi
     -- Timeout de inactividad de 30 segundos
   ```
 
-### Security and Performance Limits
+### Anonymous FTP Security and Performance Limits
 
 - Anonymous users have **no write permissions**
 - Maximum of **200 simultaneous connections**
 - Bandwidth limit per user: **50 KB/s**
 - Idle timeout: **30 seconds**
 
-### Validation
+### Anonymous FTP Validation
 
 - Anonymous login only
 - No upload
 - Automatic disconnection after inactivity
 - Proper enforcement of connection and bandwidth limits
 
-## Tools Used
+## Anonymous FTP Tools Used
 
 - **vsftpd**
 - FTP command-line client (`ftp`, `pftp`)
@@ -111,7 +109,7 @@ Each subproject includes their own READMES where are detailed setup steps, confi
 - WinSCP
 - OpenSSL (certificate generation)
 
-## Learning Outcomes
+## Anonymous FTP Learning Outcomes
 
 - FTP vs FTPS operation
 - Active and passive FTP modes
@@ -120,7 +118,7 @@ Each subproject includes their own READMES where are detailed setup steps, confi
 - Bandwidth and connection control
 - SSL/TLS encryption in vsftpd
 
-## Project Status
+## Anonymous FTP Project Status
 
 - ✔ Fully implemented  
 - ✔ Tested and validated  
@@ -128,7 +126,7 @@ Each subproject includes their own READMES where are detailed setup steps, confi
 
 ## Subproject 2: Secure FTP (FTPS)
 
-### Objectives
+### Secure FTP Objectives
 
 - Deploy a **secure vsftpd server** on Linux.
 - Allow access for:
@@ -141,13 +139,13 @@ Each subproject includes their own READMES where are detailed setup steps, confi
   - Connection limits
   - Custom welcome messages
 
-### Server Information
+### Secure FTP Server Information
 
 - Operating System: **Debian**
 - Hostname: **ftp.sistema.sol**
 - IP address: 192.168.56.20
 
-### Main Features
+### Secure FTP Main Features
 
 - **Standalone mode (IPv4 only)**
 - FTP server welcome message: **--- Welcome to the FTP server of 'sistema.sol'---**
@@ -159,7 +157,7 @@ Each subproject includes their own READMES where are detailed setup steps, confi
 - Local users: **5 MB/s**
 - Anonymous users: **2 MB/s**
 
-### User Management
+### Secure FTP User Management
 
 | User       | Access | Upload | Chroot Jail |
 |------------|--------|--------|-------------|
@@ -168,7 +166,7 @@ Each subproject includes their own READMES where are detailed setup steps, confi
 | maria      | Yes    | Yes    | No          |
 | miguel~    | Yes    | Yes    | Yes         |
 
-### FTPS Security Configuration
+### Secure FTP FTPS Security Configuration
 
 - Server certificate location: **/etc/ssl/certs/example.test.pem**
 - Encrypted login and data transfer required for local users
@@ -178,7 +176,7 @@ Each subproject includes their own READMES where are detailed setup steps, confi
 - Anonymous users: encryption optional
 - Compatibility option for some FTPS clients: require_ssl_reuse=NO
 
-### Validation and Testing
+### Secure FTP Validation and Testing
 
 - Anonymous FTP connection using command-line client
 - Authenticated FTP access:
@@ -190,14 +188,14 @@ Each subproject includes their own READMES where are detailed setup steps, confi
 
 ## Subproject 3: DNS Server
 
-### Overview
+### DNS Server Overview
 
 This virtual machine implements the **DNS infrastructure** for the `sistema.sol` domain.  
 It provides name resolution services required by the FTP environment, including both the **anonymous FTP server** and the **secure FTP server**.
 
 The DNS service is implemented using **BIND9** and is authoritative for the `sistema.sol` domain.
 
-### Server Information
+### DNS Server Server Information
 
 | Item       | Value             |
 |------------|-------------------|
@@ -206,7 +204,7 @@ The DNS service is implemented using **BIND9** and is authoritative for the `sis
 | Service    | DNS (BIND9)       |
 | Domain     | `sistema.sol`     |
 
-### DNS Responsibilities
+### DNS Server Responsibilities
 
 This DNS server is responsible for resolving hostnames related to the FTP infrastructure:
 
@@ -216,12 +214,12 @@ This DNS server is responsible for resolving hostnames related to the FTP infras
 | `mirror.sistema.sol` | Anonymous FTP server | `192.168.56.10` |
 | `ftp.sistema.sol`    | Secure FTP server    | `192.168.56.20` |
 
-### Installed Software
+### DNS Server Installed Software
 
 - **bind9** – DNS server software
 - **dnsutils** – DNS query and troubleshooting tools
 
-### Configuration Files
+### DNS Server Configuration Files
 
 The DNS configuration is handled through the following files:
 
@@ -231,19 +229,9 @@ The DNS configuration is handled through the following files:
 | `/etc/bind/named.conf.options` | Global DNS options                  |
 | `/etc/bind/named.conf.local`   | Local zone definitions              |
 | `/etc/bind/db.sistema.sol`     | Forward zone file for `sistema.sol` |
-| Reverse zone file              | IP-to-hostname resolution           |
+| `/etc/bind/db.56.168.192`      | IP-to-hostname resolution           |
 
-### Forward DNS Zone
-
-A forward DNS zone for the domain `sistema.sol` is configured and includes the following **A records**:
-
-```text
-  dns.sistema.sol     → 192.168.56.5
-  mirror.sistema.sol  → 192.168.56.10
-  ftp.sistema.sol     → 192.168.56.20
-```
-
-### Service Status
+### DNS Server Service Status
 
 - DNS service is running and enabled at system startup
 - Listening on port 53 (UDP and TCP)
@@ -253,14 +241,14 @@ A forward DNS zone for the domain `sistema.sol` is configured and includes the f
 
 The configuration was validated using the following tools:
 
-**Configuration Validation**
+Configuration Validation
 
   ```bash
     named-checkconf
     named-checkconf sistema.sol /etc/bind/db.sistema.sol
   ```
 
-**Name Resolution Tests**
+Name Resolution Tests
 
   ```bash
     dig dns.sistema.sol
